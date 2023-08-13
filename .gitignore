@@ -1,0 +1,8 @@
+.env
+data/user_profile.txt
+data/user_profile_backup.txt
+data/chromadb
+.vscode
+data/chat_logs
+data/api_logs
+data/db_logs
