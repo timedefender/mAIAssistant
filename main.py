@@ -1,7 +1,6 @@
 from langchain import SerpAPIWrapper
 from langchain.agents import initialize_agent, Tool, AgentType
 from langchain.chat_models import ChatOpenAI
-from langchain.chains import RetrievalQA
 import langchain
 import chromadb
 from chromadb.config import Settings
@@ -11,6 +10,7 @@ from uuid import uuid4
 import re
 import warnings
 from skills.youtube_transcript import get_youtube_transcript
+import json
 
 config = {}
 langchain.debug = True
@@ -45,6 +45,15 @@ def chatbot(messages):
 
     def kb_query_text(query):
         return collection.query(query_texts=query)
+    
+    def kb_save(input):
+        print(input)
+        try:
+            input_dict = json.loads(input)
+            collection.add(ids=[str(uuid4())], embeddings=None, metadatas=input_dict['metadata'], documents=input_dict['data'])
+            return "Input successfully saved to Knowledge base."
+        except ValueError:
+            return "Cant save this, input too long. Retry with a shorter version."
 
     tools = [
     Tool(
@@ -61,6 +70,11 @@ def chatbot(messages):
         name="YouTube transcript",
         description="Useful when you need to get a YouTube video transcript. Input should be valid URI for the video.",
         func=get_youtube_transcript
+        ),
+    Tool(
+        name="Save to Knowledge base",
+        description="Useful when you need to save something for future reference. You can add metadata for input so it will be easier to find and reference in the future. If input is larger than approximately 5000 words it should be summarized to about two paragraphs, preferrably without losing much context. Input should be a valid JSON that has this specific structure: {{\"data\": \"<<text you want to save here>>\", \"metadata\": [{{\"<<metadata parameter 1 name>>\": \"<<metadata parameter 1 value>>\", \"<<metadata parameter 2 name>>\": \"<<metadata parameter 2 value>>\"}}]}}",
+        func=kb_save
         )
     ]
 
@@ -115,12 +129,6 @@ if __name__ == '__main__':
                 continue
             elif 'http' in text:
                 # ingest web resource
-                # test link https://youtu.be/J77GcB706PA
-                # test link https://www.youtube.com/watch?v=HBONmpBAdpE
-                # if 'youtube.com' in text or 'youtu.be' in text:
-                #     #ingesting youtube video
-                #     continue
-
                 warnings.warn('INGESTING WEB RESOURCES NOT IMPLEMENTED' + ingest_path)
                 continue
             else:

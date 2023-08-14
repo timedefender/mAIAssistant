@@ -1,15 +1,18 @@
 # This project is inspired by and uses parts of code from
+
 https://github.com/daveshap/ChromaDB_Chatbot_Public
+
 https://github.com/imartinez/privateGPT
 
 # TODO
 
-- Search internet <input type="checkbox" checked disabled />
-- Conversation memory <input type="checkbox" checked disabled />
+- Search internet ✅
+- Conversation memory ✅
 - Ingest files 
-- Ingest directories <input type="checkbox" checked disabled />
-- Work with video transcripts <input type="checkbox" checked disabled />
-- Ingest video
+- Save to Knowledge Base ✅
+- Ingest directories ✅
+- Work with video transcripts ✅
+- Ingest YouTube video ✅
 - Ingest audio/podcasts
 - Ingest websites
 - ability for offline model to ask questions to online big model like gpt-4 if it does not know the answer
