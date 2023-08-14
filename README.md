@@ -4,6 +4,40 @@ https://github.com/daveshap/ChromaDB_Chatbot_Public
 
 https://github.com/imartinez/privateGPT
 
+# Description
+
+This project is an attempt at creating a personal AI assistant that will learn user needs and profile to serve them better and adjust its behavior accordingly, remember discussions and gathered facts.
+
+# How to install and run
+
+## Install
+
+1. Install requirements.txt
+
+``` pip install -r requirements.txt ```
+
+2. Create your own .env and user_profile.txt
+
+- Windows
+
+``` PS> Copy-Item .\.env.simple .\.env ; Copy-Item .\data\user_profile.txt.simple .\data\user_profile.txt ```
+
+- Linux
+
+``` cp .env.simple .env && cp data/user_profile.txt.simple data/user_profile.txt ```
+
+3. Replace necessary values in .env and data/user_profile.txt files with yours.
+
+## Run
+
+- Windows
+
+``` python.exe .\main.py  ```
+
+- Linux
+
+``` python ./main.py  ```
+
 # TODO
 
 - Search internet ✅
