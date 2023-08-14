@@ -14,7 +14,7 @@ https://github.com/imartinez/privateGPT
 - Work with video transcripts ✅
 - Ingest YouTube video ✅
 - Ingest audio/podcasts
-- Ingest websites
+- Ingest websites ✅ (mostly working)
 - ability for offline model to ask questions to online big model like gpt-4 if it does not know the answer
 - Text to speech and speech to text interface
 - ability to call different expert models for different topics - swarm mode

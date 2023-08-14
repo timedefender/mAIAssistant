@@ -1,5 +1,5 @@
 from langchain import SerpAPIWrapper
-from langchain.agents import initialize_agent, Tool, AgentType
+from langchain.agents import initialize_agent, Tool, AgentType, load_tools
 from langchain.chat_models import ChatOpenAI
 import langchain
 import chromadb
@@ -11,6 +11,7 @@ import re
 import warnings
 from skills.youtube_transcript import get_youtube_transcript
 import json
+from langchain.utilities import TextRequestsWrapper
 
 config = {}
 langchain.debug = True
@@ -78,8 +79,11 @@ def chatbot(messages):
         )
     ]
 
+    # loading custom tools is not supported in this method, so loading separately
+    built_in_tools = load_tools(["requests_all"])
+
     mrkl = initialize_agent(
-        tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, handle_parsing_errors=True
+        tools + built_in_tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, handle_parsing_errors=True
     )
 
     return mrkl.run(messages)
