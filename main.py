@@ -10,7 +10,7 @@ import os
 from uuid import uuid4
 import re
 import warnings
-from langchain.chains import RetrievalQA
+from skills.youtube_transcript import get_youtube_transcript
 
 config = {}
 langchain.debug = True
@@ -56,6 +56,11 @@ def chatbot(messages):
         name="Knowledge base",
         description="Useful when you need to remember things that were discussed previously or if you need to find specific notes or documents user provided you.",
         func=kb_query_text
+        ),
+    Tool(
+        name="YouTube transcript",
+        description="Useful when you need to get a YouTube video transcript. Input should be valid URI for the video.",
+        func=get_youtube_transcript
         )
     ]
 
@@ -110,6 +115,12 @@ if __name__ == '__main__':
                 continue
             elif 'http' in text:
                 # ingest web resource
+                # test link https://youtu.be/J77GcB706PA
+                # test link https://www.youtube.com/watch?v=HBONmpBAdpE
+                # if 'youtube.com' in text or 'youtu.be' in text:
+                #     #ingesting youtube video
+                #     continue
+
                 warnings.warn('INGESTING WEB RESOURCES NOT IMPLEMENTED' + ingest_path)
                 continue
             else:
