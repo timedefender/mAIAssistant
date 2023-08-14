@@ -1,5 +1,6 @@
 # This project is inspired by and uses parts of code from
 https://github.com/daveshap/ChromaDB_Chatbot_Public
+https://github.com/imartinez/privateGPT
 
 # TODO
 

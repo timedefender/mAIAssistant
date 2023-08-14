@@ -1,7 +1,7 @@
-import openai
 from langchain import SerpAPIWrapper
 from langchain.agents import initialize_agent, Tool, AgentType
 from langchain.chat_models import ChatOpenAI
+from langchain.chains import RetrievalQA
 import langchain
 import chromadb
 from chromadb.config import Settings
@@ -9,10 +9,12 @@ from time import time
 import os
 from uuid import uuid4
 import re
+import warnings
+from langchain.chains import RetrievalQA
 
 config = {}
-langchain.debug = False
-openai_api_max_retries = 7
+langchain.debug = True
+langchain.verbose = True
 
 def read_config(file_path):
     result_dict = {}
@@ -40,17 +42,25 @@ def save_file(filepath, content):
 def chatbot(messages):
     llm = ChatOpenAI(temperature=0, model=config['OPENAI_MODEL'], openai_api_key=config['OPENAI_API_KEY'])
     search = SerpAPIWrapper(serpapi_api_key=config['SERPAPI_API_KEY'])
-    
+
+    def kb_query_text(query):
+        return collection.query(query_texts=query)
+
     tools = [
     Tool(
         name="Search",
         func=search.run,
         description="Useful when you need to answer questions about current events. You should ask targeted questions.",
         ),
+    Tool(
+        name="Knowledge base",
+        description="Useful when you need to remember things that were discussed previously or if you need to find specific notes or documents user provided you.",
+        func=kb_query_text
+        )
     ]
 
     mrkl = initialize_agent(
-        tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
+        tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, handle_parsing_errors=True
     )
 
     return mrkl.run(messages)
@@ -67,11 +77,45 @@ if __name__ == '__main__':
     collection = chroma_client.get_or_create_collection(name="knowledge_base")
 
     # backup user profile
-    save_file('data/user_profile_backup.txt', open_file('data/user_profile.txt'))
+    save_file('data/user_profile_versions/user_profile_%s.txt' % time(), open_file('data/user_profile.txt'))
 
     while True:
         # get user input
         text = input('\n\nUSER: ')
+
+        # ingestors
+        if 'ingest' in text:
+            # find what user is trying to ingest
+
+            # TODO - add unix path matching
+            windows_path_pattern = r".*([a-zA-Z]:.*)"
+            match = re.search(windows_path_pattern, text)
+            ingest_path = match.group(1).replace('"','')
+
+            if os.path.isdir(ingest_path):
+                # ingest directory
+                print('Ingesting directory: ' + ingest_path)
+
+                from skills.ingest_directory import process_documents
+                documents = process_documents(ingest_path)
+                ids = []
+                for doc in documents:
+                    print(doc)
+                    collection.add(documents=doc.page_content, ids=[str(uuid4())], metadatas=doc.metadata)
+                #print(collection.peek())
+                continue
+            elif os.path.isfile(ingest_path):
+                # ingest file
+                warnings.warn('INGESTING FILES NOT IMPLEMENTED' + ingest_path)
+                continue
+            elif 'http' in text:
+                # ingest web resource
+                warnings.warn('INGESTING WEB RESOURCES NOT IMPLEMENTED' + ingest_path)
+                continue
+            else:
+                warnings.warn('UNKNOWN INGEST SOURCE' + ingest_path)
+                continue
+
         user_messages.append(text)
         all_messages.append('USER: %s' % text)
         conversation.append({'role': 'user', 'content': text})
@@ -119,9 +163,11 @@ if __name__ == '__main__':
         dirty_profile = chatbot(profile_conversation)
         pattern = r"\[{'role': 'assistant', 'content': '([^']+)'}\]"
         match = re.search(pattern, dirty_profile)
-        profile = match.group(1)
-        save_file('data/user_profile.txt', profile)
-
+        if match != None:
+            profile = match.group(1)
+            save_file('data/user_profile.txt', profile)
+        else:
+            print('\n\nNo suitable output for user profile found, not updating')
 
         # update main scratchpad
         if len(all_messages) > 5:

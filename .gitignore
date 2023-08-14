@@ -1,8 +1,9 @@
 .env
 data/user_profile.txt
-data/user_profile_backup.txt
+data/user_profile_versions
 data/chromadb
 .vscode
 data/chat_logs
 data/api_logs
 data/db_logs
+*/__pycache__
